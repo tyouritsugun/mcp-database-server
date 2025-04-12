@@ -1,0 +1,33 @@
+{
+    "name": "@executeautomation/database-server",
+    "version": "1.0.0",
+    "description": "MCP server for interacting with SQLite databases by ExecuteAutomation",
+    "license": "MIT",
+    "author": "ExecuteAutomation (https://executeautomation.com)",
+    "homepage": "https://executeautomation.com",
+    "bugs": "https://github.com/executeautomation/database-server/issues",
+    "type": "module",
+    "bin": {
+      "ea-database-server": "dist/index.js"
+    },
+    "files": [
+      "dist"
+    ],
+    "scripts": {
+      "build": "tsc && shx chmod +x dist/*.js",
+      "prepare": "npm run build",
+      "watch": "tsc --watch",
+      "start": "node dist/index.js",
+      "dev": "tsc && node dist/index.js",
+      "example": "node examples/example.js"
+    },
+    "dependencies": {
+      "@modelcontextprotocol/sdk": "1.9.0",
+      "sqlite3": "5.1.7"
+    },
+    "devDependencies": {
+      "@types/sqlite3": "5.1.0",
+      "shx": "0.4.0",
+      "typescript": "5.8.3"
+    }
+  }
