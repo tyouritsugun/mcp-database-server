@@ -16,6 +16,7 @@ echo "Building TypeScript..."
 
 # Make JavaScript files executable
 echo "Making JavaScript files executable..."
-chmod +x dist/*.js
+chmod +x dist/src/index.js
 
 echo "Build completed successfully!"
+echo "You can now run the server with: node dist/src/index.js /path/to/your/database.db"
