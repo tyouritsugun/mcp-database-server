@@ -10,11 +10,19 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 // Import database utils
-import { initDatabase, closeDatabase } from './db/index.js';
+import { initDatabase, closeDatabase, getDatabaseMetadata } from './db/index.js';
 
 // Import handlers
 import { handleListResources, handleReadResource } from './handlers/resourceHandlers.js';
 import { handleListTools, handleToolCall } from './handlers/toolHandlers.js';
+
+// Setup a logger that uses stderr instead of stdout to avoid interfering with MCP communications
+const logger = {
+  log: (...args: any[]) => console.error('[INFO]', ...args),
+  error: (...args: any[]) => console.error('[ERROR]', ...args),
+  warn: (...args: any[]) => console.error('[WARN]', ...args),
+  info: (...args: any[]) => console.error('[INFO]', ...args),
+};
 
 // Configure the server
 const server = new Server(
@@ -33,11 +41,52 @@ const server = new Server(
 // Parse command line arguments
 const args = process.argv.slice(2);
 if (args.length === 0) {
-  console.error("Please provide a database file path as a command-line argument");
+  logger.error("Please provide database connection information");
+  logger.error("Usage for SQLite: node index.js <database_file_path>");
+  logger.error("Usage for SQL Server: node index.js --sqlserver --server <server> --database <database> [--user <user> --password <password>]");
   process.exit(1);
 }
 
-const databasePath = args[0];
+// Parse arguments to determine database type and connection info
+let dbType = 'sqlite';
+let connectionInfo: any = null;
+
+// Check if using SQL Server
+if (args.includes('--sqlserver')) {
+  dbType = 'sqlserver';
+  connectionInfo = {
+    server: '',
+    database: '',
+    user: undefined,
+    password: undefined
+  };
+  
+  // Parse SQL Server connection parameters
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--server' && i + 1 < args.length) {
+      connectionInfo.server = args[i + 1];
+    } else if (args[i] === '--database' && i + 1 < args.length) {
+      connectionInfo.database = args[i + 1];
+    } else if (args[i] === '--user' && i + 1 < args.length) {
+      connectionInfo.user = args[i + 1];
+    } else if (args[i] === '--password' && i + 1 < args.length) {
+      connectionInfo.password = args[i + 1];
+    } else if (args[i] === '--port' && i + 1 < args.length) {
+      connectionInfo.port = parseInt(args[i + 1], 10);
+    }
+  }
+  
+  // Validate SQL Server connection info
+  if (!connectionInfo.server || !connectionInfo.database) {
+    logger.error("Error: SQL Server requires --server and --database parameters");
+    process.exit(1);
+  }
+} else {
+  // SQLite mode (default)
+  dbType = 'sqlite';
+  connectionInfo = args[0]; // First argument is the SQLite file path
+  logger.info(`Using SQLite database at path: ${connectionInfo}`);
+}
 
 // Set up request handlers
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
@@ -58,15 +107,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Handle shutdown gracefully
 process.on('SIGINT', async () => {
-  console.log('Shutting down gracefully...');
+  logger.info('Shutting down gracefully...');
   await closeDatabase();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('Shutting down gracefully...');
+  logger.info('Shutting down gracefully...');
   await closeDatabase();
   process.exit(0);
+});
+
+// Add global error handler
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 /**
@@ -74,19 +132,32 @@ process.on('SIGTERM', async () => {
  */
 async function runServer() {
   try {
-    console.log(`Initializing database: ${databasePath}`);
-    await initDatabase(databasePath);
+    logger.info(`Initializing ${dbType} database...`);
+    if (dbType === 'sqlite') {
+      logger.info(`Database path: ${connectionInfo}`);
+    } else if (dbType === 'sqlserver') {
+      logger.info(`Server: ${connectionInfo.server}, Database: ${connectionInfo.database}`);
+    }
     
-    console.log('Starting MCP server...');
+    // Initialize the database
+    await initDatabase(connectionInfo, dbType);
+    
+    const dbInfo = getDatabaseMetadata();
+    logger.info(`Connected to ${dbInfo.name} database`);
+    
+    logger.info('Starting MCP server...');
     const transport = new StdioServerTransport();
     await server.connect(transport);
     
-    console.log('Server running. Press Ctrl+C to exit.');
+    logger.info('Server running. Press Ctrl+C to exit.');
   } catch (error) {
-    console.error("Failed to initialize:", error);
+    logger.error("Failed to initialize:", error);
     process.exit(1);
   }
 }
 
 // Start the server
-runServer().catch(console.error); 
+runServer().catch(error => {
+  logger.error("Server initialization failed:", error);
+  process.exit(1);
+}); 

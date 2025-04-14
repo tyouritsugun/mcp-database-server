@@ -1,4 +1,4 @@
-import { dbAll, dbExec } from '../db/index.js';
+import { dbAll, dbExec, getListTablesQuery, getDescribeTableQuery } from '../db/index.js';
 import { formatSuccessResponse } from '../utils/formatUtils.js';
 
 /**
@@ -56,13 +56,12 @@ export async function dropTable(tableName: string, confirm: boolean) {
       });
     }
 
-    // Check if table exists
-    const tableExists = await dbAll(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name = ?",
-      [tableName]
-    );
+    // First check if table exists by directly querying for tables
+    const query = getListTablesQuery();
+    const tables = await dbAll(query);
+    const tableNames = tables.map(t => t.name);
     
-    if (tableExists.length === 0) {
+    if (!tableNames.includes(tableName)) {
       throw new Error(`Table '${tableName}' does not exist`);
     }
     
@@ -84,9 +83,9 @@ export async function dropTable(tableName: string, confirm: boolean) {
  */
 export async function listTables() {
   try {
-    const tables = await dbAll(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
-    );
+    // Use adapter-specific query for listing tables
+    const query = getListTablesQuery();
+    const tables = await dbAll(query);
     return formatSuccessResponse(tables.map((t) => t.name));
   } catch (error: any) {
     throw new Error(`Error listing tables: ${error.message}`);
@@ -104,17 +103,19 @@ export async function describeTable(tableName: string) {
       throw new Error("Table name is required");
     }
 
-    // Check if table exists
-    const tableExists = await dbAll(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name = ?",
-      [tableName]
-    );
+    // First check if table exists by directly querying for tables
+    const query = getListTablesQuery();
+    const tables = await dbAll(query);
+    const tableNames = tables.map(t => t.name);
     
-    if (tableExists.length === 0) {
+    if (!tableNames.includes(tableName)) {
       throw new Error(`Table '${tableName}' does not exist`);
     }
     
-    const columns = await dbAll(`PRAGMA table_info("${tableName}")`);
+    // Use adapter-specific query for describing tables
+    const descQuery = getDescribeTableQuery(tableName);
+    const columns = await dbAll(descQuery);
+    
     return formatSuccessResponse(columns.map((col) => ({
       name: col.name,
       type: col.type,

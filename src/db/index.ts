@@ -1,23 +1,28 @@
-import sqlite3 from "sqlite3";
+import { DbAdapter, createDbAdapter } from './adapter.js';
 
-let db: sqlite3.Database;
-let databasePath: string;
+// Store the active database adapter
+let dbAdapter: DbAdapter | null = null;
 
 /**
- * Initialize the SQLite database connection
- * @param dbPath Path to the SQLite database file
+ * Initialize the database connection
+ * @param connectionInfo Connection information object or SQLite path string
+ * @param dbType Database type ('sqlite' or 'sqlserver')
  */
-export function initDatabase(dbPath: string): Promise<void> {
-  databasePath = dbPath;
-  return new Promise((resolve, reject) => {
-    db = new sqlite3.Database(dbPath, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
+export async function initDatabase(connectionInfo: any, dbType: string = 'sqlite'): Promise<void> {
+  try {
+    // If connectionInfo is a string, assume it's a SQLite path
+    if (typeof connectionInfo === 'string') {
+      connectionInfo = { path: connectionInfo };
+    }
+
+    // Create appropriate adapter based on database type
+    dbAdapter = createDbAdapter(dbType, connectionInfo);
+    
+    // Initialize the connection
+    await dbAdapter.init();
+  } catch (error) {
+    throw new Error(`Failed to initialize database: ${(error as Error).message}`);
+  }
 }
 
 /**
@@ -27,15 +32,10 @@ export function initDatabase(dbPath: string): Promise<void> {
  * @returns Promise with query results
  */
 export function dbAll(query: string, params: any[] = []): Promise<any[]> {
-  return new Promise((resolve, reject) => {
-    db.all(query, params, (err: Error | null, rows: any[]) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(rows);
-      }
-    });
-  });
+  if (!dbAdapter) {
+    throw new Error("Database not initialized");
+  }
+  return dbAdapter.all(query, params);
 }
 
 /**
@@ -45,15 +45,10 @@ export function dbAll(query: string, params: any[] = []): Promise<any[]> {
  * @returns Promise with result info
  */
 export function dbRun(query: string, params: any[] = []): Promise<{ changes: number, lastID: number }> {
-  return new Promise((resolve, reject) => {
-    db.run(query, params, function(this: sqlite3.RunResult, err: Error | null) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({ changes: this.changes, lastID: this.lastID });
-      }
-    });
-  });
+  if (!dbAdapter) {
+    throw new Error("Database not initialized");
+  }
+  return dbAdapter.run(query, params);
 }
 
 /**
@@ -62,40 +57,49 @@ export function dbRun(query: string, params: any[] = []): Promise<{ changes: num
  * @returns Promise that resolves when execution completes
  */
 export function dbExec(query: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.exec(query, (err: Error | null) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
+  if (!dbAdapter) {
+    throw new Error("Database not initialized");
+  }
+  return dbAdapter.exec(query);
 }
 
 /**
  * Close the database connection
  */
 export function closeDatabase(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (!db) {
-      resolve();
-      return;
-    }
-    
-    db.close((err: Error | null) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
+  if (!dbAdapter) {
+    return Promise.resolve();
+  }
+  return dbAdapter.close();
 }
 
 /**
- * Get the current database path
+ * Get database metadata
  */
-export function getDatabasePath(): string {
-  return databasePath;
+export function getDatabaseMetadata(): { name: string, type: string, path?: string, server?: string, database?: string } {
+  if (!dbAdapter) {
+    throw new Error("Database not initialized");
+  }
+  return dbAdapter.getMetadata();
+}
+
+/**
+ * Get database-specific query for listing tables
+ */
+export function getListTablesQuery(): string {
+  if (!dbAdapter) {
+    throw new Error("Database not initialized");
+  }
+  return dbAdapter.getListTablesQuery();
+}
+
+/**
+ * Get database-specific query for describing a table
+ * @param tableName Table name
+ */
+export function getDescribeTableQuery(tableName: string): string {
+  if (!dbAdapter) {
+    throw new Error("Database not initialized");
+  }
+  return dbAdapter.getDescribeTableQuery(tableName);
 } 

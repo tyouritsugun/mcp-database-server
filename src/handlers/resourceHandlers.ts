@@ -1,5 +1,4 @@
-import { dbAll } from '../db/index.js';
-import { getDatabasePath } from '../db/index.js';
+import { dbAll, getListTablesQuery, getDescribeTableQuery, getDatabaseMetadata } from '../db/index.js';
 
 /**
  * Handle listing resources request
@@ -7,13 +6,24 @@ import { getDatabasePath } from '../db/index.js';
  */
 export async function handleListResources() {
   try {
-    const databasePath = getDatabasePath();
-    const resourceBaseUrl = new URL(`sqlite:///${databasePath}`);
+    const dbInfo = getDatabaseMetadata();
+    const dbType = dbInfo.type;
+    let resourceBaseUrl: URL;
+    
+    // Create appropriate URL based on database type
+    if (dbType === 'sqlite' && dbInfo.path) {
+      resourceBaseUrl = new URL(`sqlite:///${dbInfo.path}`);
+    } else if (dbType === 'sqlserver' && dbInfo.server && dbInfo.database) {
+      resourceBaseUrl = new URL(`sqlserver://${dbInfo.server}/${dbInfo.database}`);
+    } else {
+      resourceBaseUrl = new URL(`db:///database`);
+    }
+    
     const SCHEMA_PATH = "schema";
 
-    const result = await dbAll(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
-    );
+    // Use adapter-specific query to list tables
+    const query = getListTablesQuery();
+    const result = await dbAll(query);
     
     return {
       resources: result.map((row: any) => ({
@@ -45,8 +55,9 @@ export async function handleReadResource(uri: string) {
       throw new Error("Invalid resource URI");
     }
 
-    // Query to get column information for a table
-    const result = await dbAll(`PRAGMA table_info("${tableName}")`);
+    // Use adapter-specific query to describe the table
+    const query = getDescribeTableQuery(tableName!);
+    const result = await dbAll(query);
 
     return {
       contents: [
