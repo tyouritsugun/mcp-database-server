@@ -3,8 +3,8 @@
     "version": "1.0.0",
     "description": "MCP server for interacting with SQLite and SQL Server databases by ExecuteAutomation",
     "license": "MIT",
-    "author": "ExecuteAutomation (https://executeautomation.com)",
-    "homepage": "https://executeautomation.com",
+    "author": "ExecuteAutomation, Ltd (https://executeautomation.com)",
+    "homepage": "https://github.com/executeautomation/mcp-database-server",
     "bugs": "https://github.com/executeautomation/database-server/issues",
     "type": "module",
     "bin": {
