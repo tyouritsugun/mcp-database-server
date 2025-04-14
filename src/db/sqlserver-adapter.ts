@@ -49,8 +49,11 @@ export class SqlServerAdapter implements DbAdapter {
    */
   async init(): Promise<void> {
     try {
+      console.error(`[INFO] Connecting to SQL Server: ${this.server}, Database: ${this.database}`);
       this.pool = await new sql.ConnectionPool(this.config).connect();
+      console.error(`[INFO] SQL Server connection established successfully`);
     } catch (err) {
+      console.error(`[ERROR] SQL Server connection error: ${(err as Error).message}`);
       throw new Error(`Failed to connect to SQL Server: ${(err as Error).message}`);
     }
   }
