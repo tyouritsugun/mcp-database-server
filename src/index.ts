@@ -28,7 +28,7 @@ const logger = {
 const server = new Server(
   {
     name: "executeautomation/database-server",
-    version: "1.0.0",
+    version: "1.0.1",
   },
   {
     capabilities: {
