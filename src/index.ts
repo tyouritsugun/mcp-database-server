@@ -44,6 +44,7 @@ if (args.length === 0) {
   logger.error("Please provide database connection information");
   logger.error("Usage for SQLite: node index.js <database_file_path>");
   logger.error("Usage for SQL Server: node index.js --sqlserver --server <server> --database <database> [--user <user> --password <password>]");
+  logger.error("Usage for PostgreSQL: node index.js --postgresql --host <host> --database <database> [--user <user> --password <password> --port <port>]");
   process.exit(1);
 }
 
@@ -79,6 +80,41 @@ if (args.includes('--sqlserver')) {
   // Validate SQL Server connection info
   if (!connectionInfo.server || !connectionInfo.database) {
     logger.error("Error: SQL Server requires --server and --database parameters");
+    process.exit(1);
+  }
+} 
+// Check if using PostgreSQL
+else if (args.includes('--postgresql') || args.includes('--postgres')) {
+  dbType = 'postgresql';
+  connectionInfo = {
+    host: '',
+    database: '',
+    user: undefined,
+    password: undefined,
+    port: undefined,
+    ssl: undefined
+  };
+  
+  // Parse PostgreSQL connection parameters
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--host' && i + 1 < args.length) {
+      connectionInfo.host = args[i + 1];
+    } else if (args[i] === '--database' && i + 1 < args.length) {
+      connectionInfo.database = args[i + 1];
+    } else if (args[i] === '--user' && i + 1 < args.length) {
+      connectionInfo.user = args[i + 1];
+    } else if (args[i] === '--password' && i + 1 < args.length) {
+      connectionInfo.password = args[i + 1];
+    } else if (args[i] === '--port' && i + 1 < args.length) {
+      connectionInfo.port = parseInt(args[i + 1], 10);
+    } else if (args[i] === '--ssl' && i + 1 < args.length) {
+      connectionInfo.ssl = args[i + 1] === 'true';
+    }
+  }
+  
+  // Validate PostgreSQL connection info
+  if (!connectionInfo.host || !connectionInfo.database) {
+    logger.error("Error: PostgreSQL requires --host and --database parameters");
     process.exit(1);
   }
 } else {
@@ -137,6 +173,8 @@ async function runServer() {
       logger.info(`Database path: ${connectionInfo}`);
     } else if (dbType === 'sqlserver') {
       logger.info(`Server: ${connectionInfo.server}, Database: ${connectionInfo.database}`);
+    } else if (dbType === 'postgresql') {
+      logger.info(`Host: ${connectionInfo.host}, Database: ${connectionInfo.database}`);
     }
     
     // Initialize the database

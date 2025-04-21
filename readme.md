@@ -1,6 +1,6 @@
 # MCP Database Server
 
-This MCP (Model Context Protocol) server provides database access capabilities to Claude, supporting both SQLite and SQL Server databases.
+This MCP (Model Context Protocol) server provides database access capabilities to Claude, supporting SQLite, SQL Server, and PostgreSQL databases.
 
 ## Installation
 
@@ -71,6 +71,24 @@ Optional parameters:
 - `--password`: Password for SQL Server authentication
 - `--port`: Port number (default: 1433)
 
+### PostgreSQL Database
+
+To use with a PostgreSQL database:
+
+```
+node dist/src/index.js --postgresql --host <host-name> --database <database-name> [--user <username> --password <password>]
+```
+
+Required parameters:
+- `--host`: PostgreSQL host name or IP address
+- `--database`: Name of the database
+
+Optional parameters:
+- `--user`: Username for PostgreSQL authentication
+- `--password`: Password for PostgreSQL authentication
+- `--port`: Port number (default: 5432)
+- `--ssl`: Enable SSL connection (true/false)
+
 ## Configuring Claude Desktop
 
 ### Direct Usage Configuration
@@ -95,6 +113,18 @@ If you installed the package globally, configure Claude Desktop with:
         "@executeautomation/database-server",
         "--sqlserver",
         "--server", "your-server-name",
+        "--database", "your-database-name",
+        "--user", "your-username",
+        "--password", "your-password"
+      ]
+    },
+    "postgresql": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@executeautomation/database-server",
+        "--postgresql",
+        "--host", "your-host-name",
         "--database", "your-database-name",
         "--user", "your-username",
         "--password", "your-password"
@@ -124,6 +154,17 @@ For local development, configure Claude Desktop to use your locally built versio
         "/absolute/path/to/mcp-database-server/dist/src/index.js",
         "--sqlserver",
         "--server", "your-server-name",
+        "--database", "your-database-name",
+        "--user", "your-username",
+        "--password", "your-password"
+      ]
+    },
+    "postgresql": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/mcp-database-server/dist/src/index.js",
+        "--postgresql",
+        "--host", "your-host-name",
         "--database", "your-database-name",
         "--user", "your-username",
         "--password", "your-password"
@@ -160,6 +201,7 @@ For practical examples of how to use these tools with Claude, see [Usage Example
 ## Additional Documentation
 
 - [SQL Server Setup Guide](docs/sql-server-setup.md): Details on connecting to SQL Server databases
+- [PostgreSQL Setup Guide](docs/postgresql-setup.md): Details on connecting to PostgreSQL databases
 - [Usage Examples](docs/usage-examples.md): Example queries and commands to use with Claude
 
 ## Development
@@ -180,6 +222,7 @@ npm run watch
 
 - Node.js 18+
 - For SQL Server connectivity: SQL Server 2012 or later
+- For PostgreSQL connectivity: PostgreSQL 9.5 or later
 
 ## License
 
