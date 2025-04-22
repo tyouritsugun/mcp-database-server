@@ -19,12 +19,15 @@ const sidebars: SidebarsConfig = {
   // But you can create a sidebar manually
   tutorialSidebar: [
     'intro',
+    'release-notes',
     'getting-started',
     {
       type: 'category',
       label: 'Database Setup',
       items: [
         'sqlite-setup',
+        'sql-server-setup',
+        'postgresql-setup',
         'connection-reference',
       ],
     },
