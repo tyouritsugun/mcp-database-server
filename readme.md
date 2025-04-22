@@ -88,6 +88,7 @@ Optional parameters:
 - `--password`: Password for PostgreSQL authentication
 - `--port`: Port number (default: 5432)
 - `--ssl`: Enable SSL connection (true/false)
+- `--connection-timeout`: Connection timeout in milliseconds (default: 30000)
 
 ## Configuring Claude Desktop
 

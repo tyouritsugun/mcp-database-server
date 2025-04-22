@@ -25,6 +25,9 @@ node dist/src/index.js --postgresql --host localhost --database yourdb --user po
 
 # With SSL enabled
 node dist/src/index.js --postgresql --host localhost --database yourdb --user postgres --password yourpassword --ssl true
+
+# With custom connection timeout (in milliseconds)
+node dist/src/index.js --postgresql --host localhost --database yourdb --user postgres --password yourpassword --connection-timeout 60000
 ```
 
 ## Command Line Arguments
@@ -36,6 +39,7 @@ node dist/src/index.js --postgresql --host localhost --database yourdb --user po
 - `--password`: The password for the PostgreSQL user.
 - `--port`: The port the PostgreSQL server is listening on (default: 5432).
 - `--ssl`: Whether to use SSL for the connection (true/false).
+- `--connection-timeout`: The connection timeout in milliseconds (default: 30000).
 
 ## Usage from MCP Client
 

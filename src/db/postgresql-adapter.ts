@@ -18,6 +18,7 @@ export class PostgresqlAdapter implements DbAdapter {
     port?: number;
     ssl?: boolean | object;
     options?: any;
+    connectionTimeout?: number;
   }) {
     this.host = connectionInfo.host;
     this.database = connectionInfo.database;
@@ -29,7 +30,9 @@ export class PostgresqlAdapter implements DbAdapter {
       port: connectionInfo.port || 5432,
       user: connectionInfo.user,
       password: connectionInfo.password,
-      ssl: connectionInfo.ssl
+      ssl: connectionInfo.ssl,
+      // Add connection timeout if provided (in milliseconds)
+      connectionTimeoutMillis: connectionInfo.connectionTimeout || 30000,
     };
   }
 
@@ -39,6 +42,15 @@ export class PostgresqlAdapter implements DbAdapter {
   async init(): Promise<void> {
     try {
       console.error(`[INFO] Connecting to PostgreSQL: ${this.host}, Database: ${this.database}`);
+      console.error(`[DEBUG] Connection details:`, {
+        host: this.host, 
+        database: this.database,
+        port: this.config.port,
+        user: this.config.user,
+        connectionTimeoutMillis: this.config.connectionTimeoutMillis,
+        ssl: !!this.config.ssl
+      });
+      
       this.client = new pg.Client(this.config);
       await this.client.connect();
       console.error(`[INFO] PostgreSQL connection established successfully`);

@@ -92,7 +92,8 @@ else if (args.includes('--postgresql') || args.includes('--postgres')) {
     user: undefined,
     password: undefined,
     port: undefined,
-    ssl: undefined
+    ssl: undefined,
+    connectionTimeout: undefined
   };
   
   // Parse PostgreSQL connection parameters
@@ -109,6 +110,8 @@ else if (args.includes('--postgresql') || args.includes('--postgres')) {
       connectionInfo.port = parseInt(args[i + 1], 10);
     } else if (args[i] === '--ssl' && i + 1 < args.length) {
       connectionInfo.ssl = args[i + 1] === 'true';
+    } else if (args[i] === '--connection-timeout' && i + 1 < args.length) {
+      connectionInfo.connectionTimeout = parseInt(args[i + 1], 10);
     }
   }
   
