@@ -35,6 +35,16 @@ export class MysqlAdapter implements DbAdapter {
     } else if (connectionInfo.ssl === true) {
       this.config.ssl = {};
     }
+    // Validate port
+    if (connectionInfo.port && typeof connectionInfo.port !== 'number') {
+      const parsedPort = parseInt(connectionInfo.port as any, 10);
+      if (isNaN(parsedPort)) {
+        throw new Error(`Invalid port value for MySQL: ${connectionInfo.port}`);
+      }
+      this.config.port = parsedPort;
+    }
+    // Log the port for debugging
+    console.error(`[DEBUG] MySQL connection will use port: ${this.config.port}`);
   }
 
   /**
