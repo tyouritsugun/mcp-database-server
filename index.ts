@@ -14,7 +14,7 @@ import sqlite3 from "sqlite3";
 const server = new Server(
   {
     name: "executeautomation/database-server",
-    version: "1.0.0",
+    version: "1.1.0",
   },
   {
     capabilities: {

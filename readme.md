@@ -97,17 +97,17 @@ Optional parameters:
 To use with a MySQL database:
 
 ```
-node dist/src/index.js --mysql --host <host-name> --database <database-name> [--user <username> --password <password>]
+node dist/src/index.js --mysql --host <host-name> --database <database-name> --port <port> [--user <username> --password <password>]
 ```
 
 Required parameters:
 - `--host`: MySQL host name or IP address
 - `--database`: Name of the database
+- `--port`: Port number (default: 3306)
 
 Optional parameters:
 - `--user`: Username for MySQL authentication
 - `--password`: Password for MySQL authentication
-- `--port`: Port number (default: 3306)
 - `--ssl`: Enable SSL connection (true/false or object)
 - `--connection-timeout`: Connection timeout in milliseconds (default: 30000)
 
@@ -160,6 +160,7 @@ If you installed the package globally, configure Claude Desktop with:
         "--mysql",
         "--host", "your-host-name",
         "--database", "your-database-name",
+        "--port", "3306",
         "--user", "your-username",
         "--password", "your-password"
       ]
@@ -211,6 +212,7 @@ For local development, configure Claude Desktop to use your locally built versio
         "--mysql",
         "--host", "your-host-name",
         "--database", "your-database-name",
+        "--port", "3306",
         "--user", "your-username",
         "--password", "your-password"
       ]

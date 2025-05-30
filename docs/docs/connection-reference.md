@@ -68,6 +68,25 @@ node dist/src/index.js --postgresql --host localhost --database sample_db --user
 node dist/src/index.js --postgresql --host dbserver.example.com --database sample_db --user appuser --password Secure123! --port 5433 --ssl true
 ```
 
+## MySQL Connection Options
+
+| Option | Description | Default | Required |
+|--------|-------------|---------|----------|
+| `--mysql` | Specifies MySQL mode | - | Yes |
+| `--host` | MySQL hostname or IP | - | Yes |
+| `--database` | Database name | - | Yes |
+| `--user` | MySQL username | - | No |
+| `--password` | MySQL password | - | No |
+| `--port` | MySQL port | 3306 | No |
+| `--ssl` | Use SSL connection (true/false or object) | false | No |
+| `--connection-timeout` | Connection timeout in ms | 30000 | No |
+
+### Example
+
+```bash
+node dist/src/index.js --mysql --host localhost --database sample_db --port 3306 --user root --password secret
+```
+
 ## Environment Variables
 
 Instead of specifying sensitive credentials on the command line, you can use environment variables:

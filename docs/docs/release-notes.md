@@ -53,4 +53,12 @@
 - Table management (CREATE, ALTER, DROP)
 - Schema introspection
 - MCP integration for Claude Desktop
-- Node.js-based implementation for cross-platform support 
+- Node.js-based implementation for cross-platform support
+
+## 1.1.0 (2024-05-30)
+
+### Features
+- Added MySQL database support (read/write/query, schema, etc.)
+- Support for passing MySQL port via CLI and config
+- Improved port validation and debug logging for MySQL
+- Updated documentation and examples for MySQL and port usage 
