@@ -54,6 +54,7 @@ export interface DbAdapter {
 import { SqliteAdapter } from './sqlite-adapter.js';
 import { SqlServerAdapter } from './sqlserver-adapter.js';
 import { PostgresqlAdapter } from './postgresql-adapter.js';
+import { MysqlAdapter } from './mysql-adapter.js';
 
 /**
  * Factory function to create the appropriate database adapter
@@ -72,6 +73,8 @@ export function createDbAdapter(type: string, connectionInfo: any): DbAdapter {
     case 'postgresql':
     case 'postgres':
       return new PostgresqlAdapter(connectionInfo);
+    case 'mysql':
+      return new MysqlAdapter(connectionInfo);
     default:
       throw new Error(`Unsupported database type: ${type}`);
   }

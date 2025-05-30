@@ -45,6 +45,7 @@ if (args.length === 0) {
   logger.error("Usage for SQLite: node index.js <database_file_path>");
   logger.error("Usage for SQL Server: node index.js --sqlserver --server <server> --database <database> [--user <user> --password <password>]");
   logger.error("Usage for PostgreSQL: node index.js --postgresql --host <host> --database <database> [--user <user> --password <password> --port <port>]");
+  logger.error("Usage for MySQL: node index.js --mysql --host <host> --database <database> [--user <user> --password <password> --port <port>]");
   process.exit(1);
 }
 
@@ -120,6 +121,45 @@ else if (args.includes('--postgresql') || args.includes('--postgres')) {
     logger.error("Error: PostgreSQL requires --host and --database parameters");
     process.exit(1);
   }
+}
+// Check if using MySQL
+else if (args.includes('--mysql')) {
+  dbType = 'mysql';
+  connectionInfo = {
+    host: '',
+    database: '',
+    user: undefined,
+    password: undefined,
+    port: undefined,
+    ssl: undefined,
+    connectionTimeout: undefined
+  };
+  // Parse MySQL connection parameters
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--host' && i + 1 < args.length) {
+      connectionInfo.host = args[i + 1];
+    } else if (args[i] === '--database' && i + 1 < args.length) {
+      connectionInfo.database = args[i + 1];
+    } else if (args[i] === '--user' && i + 1 < args.length) {
+      connectionInfo.user = args[i + 1];
+    } else if (args[i] === '--password' && i + 1 < args.length) {
+      connectionInfo.password = args[i + 1];
+    } else if (args[i] === '--port' && i + 1 < args.length) {
+      connectionInfo.port = parseInt(args[i + 1], 10);
+    } else if (args[i] === '--ssl' && i + 1 < args.length) {
+      const sslVal = args[i + 1];
+      if (sslVal === 'true') connectionInfo.ssl = true;
+      else if (sslVal === 'false') connectionInfo.ssl = false;
+      else connectionInfo.ssl = sslVal;
+    } else if (args[i] === '--connection-timeout' && i + 1 < args.length) {
+      connectionInfo.connectionTimeout = parseInt(args[i + 1], 10);
+    }
+  }
+  // Validate MySQL connection info
+  if (!connectionInfo.host || !connectionInfo.database) {
+    logger.error("Error: MySQL requires --host and --database parameters");
+    process.exit(1);
+  }
 } else {
   // SQLite mode (default)
   dbType = 'sqlite';
@@ -177,6 +217,8 @@ async function runServer() {
     } else if (dbType === 'sqlserver') {
       logger.info(`Server: ${connectionInfo.server}, Database: ${connectionInfo.database}`);
     } else if (dbType === 'postgresql') {
+      logger.info(`Host: ${connectionInfo.host}, Database: ${connectionInfo.database}`);
+    } else if (dbType === 'mysql') {
       logger.info(`Host: ${connectionInfo.host}, Database: ${connectionInfo.database}`);
     }
     
