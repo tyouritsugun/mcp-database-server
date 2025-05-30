@@ -2,7 +2,7 @@
 
 # MCP Database Server
 
-This MCP (Model Context Protocol) server provides database access capabilities to Claude, supporting SQLite, SQL Server, and PostgreSQL databases.
+This MCP (Model Context Protocol) server provides database access capabilities to Claude, supporting SQLite, SQL Server, PostgreSQL, and MySQL databases.
 
 ## Installation
 
@@ -92,6 +92,25 @@ Optional parameters:
 - `--ssl`: Enable SSL connection (true/false)
 - `--connection-timeout`: Connection timeout in milliseconds (default: 30000)
 
+### MySQL Database
+
+To use with a MySQL database:
+
+```
+node dist/src/index.js --mysql --host <host-name> --database <database-name> --port <port> [--user <username> --password <password>]
+```
+
+Required parameters:
+- `--host`: MySQL host name or IP address
+- `--database`: Name of the database
+- `--port`: Port number (default: 3306)
+
+Optional parameters:
+- `--user`: Username for MySQL authentication
+- `--password`: Password for MySQL authentication
+- `--ssl`: Enable SSL connection (true/false or object)
+- `--connection-timeout`: Connection timeout in milliseconds (default: 30000)
+
 ## Configuring Claude Desktop
 
 ### Direct Usage Configuration
@@ -132,6 +151,19 @@ If you installed the package globally, configure Claude Desktop with:
         "--user", "your-username",
         "--password", "your-password"
       ]
+    },
+    "mysql": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@executeautomation/database-server",
+        "--mysql",
+        "--host", "your-host-name",
+        "--database", "your-database-name",
+        "--port", "3306",
+        "--user", "your-username",
+        "--password", "your-password"
+      ]
     }
   }
 }
@@ -169,6 +201,18 @@ For local development, configure Claude Desktop to use your locally built versio
         "--postgresql",
         "--host", "your-host-name",
         "--database", "your-database-name",
+        "--user", "your-username",
+        "--password", "your-password"
+      ]
+    },
+    "mysql": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/mcp-database-server/dist/src/index.js",
+        "--mysql",
+        "--host", "your-host-name",
+        "--database", "your-database-name",
+        "--port", "3306",
         "--user", "your-username",
         "--password", "your-password"
       ]
