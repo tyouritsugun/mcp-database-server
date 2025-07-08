@@ -1,5 +1,6 @@
 import { dbAll, dbRun, dbExec } from '../db/index.js';
 import { formatErrorResponse, formatSuccessResponse, convertToCSV } from '../utils/formatUtils.js';
+import { serverConfig } from '../config.js';
 
 /**
  * Execute a read-only SQL query
@@ -26,6 +27,26 @@ export async function readQuery(query: string) {
  */
 export async function writeQuery(query: string) {
   try {
+    const dangerousPatterns = [];
+    if (serverConfig.blockedCommands.has('DELETE')) {
+      dangerousPatterns.push(/^\s*DELETE\s+FROM\s+\w+\s*$/i);
+    }
+    if (serverConfig.blockedCommands.has('TRUNCATE')) {
+      dangerousPatterns.push(/^\s*TRUNCATE\s+TABLE\s+/i);
+    }
+    if (serverConfig.blockedCommands.has('DROP')) {
+      dangerousPatterns.push(/^\s*DROP\s+(TABLE|DATABASE)\s+/i);
+    }
+    if (serverConfig.blockedCommands.has('UPDATE')) {
+      dangerousPatterns.push(/^\s*UPDATE\s+\w+\s+SET\s+.*\s*$/i);
+    }
+    
+    // Check for dangerous patterns
+    for (const pattern of dangerousPatterns) {
+      if (pattern.test(query)) {
+        throw new Error(`Dangerous SQL query detected: ${query}`);
+      }
+    }
     const lowerQuery = query.trim().toLowerCase();
     
     if (lowerQuery.startsWith("select")) {

@@ -16,6 +16,8 @@ import { initDatabase, closeDatabase, getDatabaseMetadata } from './db/index.js'
 import { handleListResources, handleReadResource } from './handlers/resourceHandlers.js';
 import { handleListTools, handleToolCall } from './handlers/toolHandlers.js';
 
+import { setBlockedCommands } from './config.js';
+
 // Setup a logger that uses stderr instead of stdout to avoid interfering with MCP communications
 const logger = {
   log: (...args: any[]) => console.error('[INFO]', ...args),
@@ -23,6 +25,31 @@ const logger = {
   warn: (...args: any[]) => console.error('[WARN]', ...args),
   info: (...args: any[]) => console.error('[INFO]', ...args),
 };
+
+// Parse command line arguments for blocked commands
+const blockCommandArg = '--block-command';
+const blockCommandIndex = process.argv.findIndex(arg => arg.startsWith(blockCommandArg));
+
+if (blockCommandIndex !== -1) {
+  const arg = process.argv[blockCommandIndex];
+  let commands: string | undefined;
+
+  if (arg.includes('=')) {
+    // Handles --block-command=DELETE,TRUNCATE
+    commands = arg.split('=')[1];
+  } else if (blockCommandIndex + 1 < process.argv.length && !process.argv[blockCommandIndex + 1].startsWith('--')) {
+    // Handles --block-command DELETE,TRUNCATE
+    commands = process.argv[blockCommandIndex + 1];
+  }
+
+  if (commands) {
+    setBlockedCommands(commands);
+    logger.info(`Blocked commands: ${commands}`);
+  }
+
+  // Remove the --block-command argument and its value from the args array
+  process.argv.splice(blockCommandIndex, commands ? 2 : 1);
+}
 
 // Configure the server
 const server = new Server(
