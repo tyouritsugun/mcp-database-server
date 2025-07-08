@@ -1,15 +1,17 @@
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/executeautomation-mcp-database-server-badge.png)](https://mseep.ai/app/executeautomation-mcp-database-server)
 
-# MCP Database Server
+# MCP Database Server (Security Pack)
 
-This MCP (Model Context Protocol) server provides database access capabilities to Claude, supporting SQLite, SQL Server, PostgreSQL, and MySQL databases.
+This is a security-enhanced fork of the original MCP (Model Context Protocol) server, which provides database access capabilities to Claude, supporting SQLite, SQL Server, PostgreSQL, and MySQL databases.
+
+**Special thanks to the original authors at ExecuteAutomation for creating the foundation of this project.**
 
 ## Installation
 
 1. Clone the repository:
 ```
-git clone https://github.com/executeautomation/mcp-database-server.git
-cd database-server
+git clone https://github.com/tyouritsugun/mcp-database-server.git
+cd mcp-database-server
 ```
 
 2. Install dependencies:
@@ -22,124 +24,93 @@ npm install
 npm run build
 ```
 
-## Usage Options
+## Security Best Practices
 
-There are two ways to use this MCP server with Claude:
+This security-enhanced version of the MCP Database Server introduces a new command-line argument, `--block-command`, to prevent dangerous or destructive SQL operations from being executed. This provides a server-level safeguard against unintended data modification.
 
-1. **Direct usage**: Install the package globally and use it directly
-2. **Local development**: Run from your local development environment
+For maximum security, we recommend a two-layered approach:
+1.  **Application Layer**: Use the `--block-command` argument to explicitly disable commands like `DELETE`, `TRUNCATE`, `DROP`, and `UPDATE`.
+2.  **Database Layer**: Connect to your database using a dedicated, read-only user.
 
-### Direct Usage with NPM Package
+This combination ensures that even if the application-level block fails or is misconfigured, the database's own permission system will prevent unauthorized actions. It is strongly recommended to create a dedicated, read-only database user for this MCP server to minimize the risk of accidental or malicious data modification.
 
-The easiest way to use this MCP server is by installing it globally:
+### Creating a Read-Only User in PostgreSQL
 
-```bash
-npm install -g @executeautomation/database-server
+To create a read-only user in PostgreSQL, connect to your database with an admin account and run the following SQL commands:
+
+```sql
+-- Create a new user with a secure password
+CREATE USER mcp_user WITH PASSWORD 'your_secure_password';
+
+-- Grant connect access to the database
+GRANT CONNECT ON DATABASE your_database_name TO mcp_user;
+
+-- Grant usage access to the public schema
+GRANT USAGE ON SCHEMA public TO mcp_user;
+
+-- Grant select-only permissions on all existing tables in the public schema
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO mcp_user;
+
+-- Set default permissions to grant select-only on new tables
+ALTER DEFAULT PRIVILEGES IN SCHEMA public FOR ROLE mcp_user GRANT SELECT ON TABLES TO mcp_user;
 ```
 
-This allows you to use the server directly without building it locally.
+### Creating a Read-Only User in MySQL
 
-### Local Development Setup
+To create a read-only user in MySQL, connect to your database with an admin account and run the following SQL commands:
 
-If you want to modify the code or run from your local environment:
+```sql
+-- Create a new user and grant access from a specific IP or '%' for any host
+CREATE USER 'mcp_user'@'localhost' IDENTIFIED BY 'your_secure_password';
 
-1. Clone and build the repository as shown in the Installation section
-2. Run the server using the commands in the Usage section below
+-- Grant select-only permissions on all tables in your database
+GRANT SELECT ON your_database_name.* TO 'mcp_user'@'localhost';
+
+-- Apply the new permissions
+FLUSH PRIVILEGES;
+```
 
 ## Usage
 
 ### SQLite Database
 
-To use with an SQLite database:
+To use with an SQLite database and block dangerous commands:
 
 ```
-node dist/src/index.js /path/to/your/database.db
+node dist/src/index.js /path/to/your/database.db --block-command "DELETE,TRUNCATE,DROP,UPDATE"
 ```
 
 ### SQL Server Database
 
-To use with a SQL Server database:
+To use with a SQL Server database and block dangerous commands:
 
 ```
-node dist/src/index.js --sqlserver --server <server-name> --database <database-name> [--user <username> --password <password>]
+node dist/src/index.js --sqlserver --server <server-name> --database <database-name> --user <username> --password <password> --block-command "DELETE,TRUNCATE,DROP,UPDATE"
 ```
-
-Required parameters:
-- `--server`: SQL Server host name or IP address
-- `--database`: Name of the database
-
-Optional parameters:
-- `--user`: Username for SQL Server authentication (if not provided, Windows Authentication will be used)
-- `--password`: Password for SQL Server authentication
-- `--port`: Port number (default: 1433)
 
 ### PostgreSQL Database
 
-To use with a PostgreSQL database:
+To use with a PostgreSQL database and block dangerous commands:
 
 ```
-node dist/src/index.js --postgresql --host <host-name> --database <database-name> [--user <username> --password <password>]
+node dist/src/index.js --postgresql --host <host-name> --database <database-name> --user <username> --password <password> --block-command "DELETE,TRUNCATE,DROP,UPDATE"
 ```
-
-Required parameters:
-- `--host`: PostgreSQL host name or IP address
-- `--database`: Name of the database
-
-Optional parameters:
-- `--user`: Username for PostgreSQL authentication
-- `--password`: Password for PostgreSQL authentication
-- `--port`: Port number (default: 5432)
-- `--ssl`: Enable SSL connection (true/false)
-- `--connection-timeout`: Connection timeout in milliseconds (default: 30000)
 
 ### MySQL Database
 
-To use with a MySQL database:
+To use with a MySQL database and block dangerous commands:
 
 ```
-node dist/src/index.js --mysql --host <host-name> --database <database-name> --port <port> [--user <username> --password <password>]
+node dist/src/index.js --mysql --host <host-name> --database <database-name> --port <port> --user <username> --password <password> --block-command "DELETE,TRUNCATE,DROP,UPDATE"
 ```
-
-Required parameters:
-- `--host`: MySQL host name or IP address
-- `--database`: Name of the database
-- `--port`: Port number (default: 3306)
-
-Optional parameters:
-- `--user`: Username for MySQL authentication
-- `--password`: Password for MySQL authentication
-- `--ssl`: Enable SSL connection (true/false or object)
-- `--connection-timeout`: Connection timeout in milliseconds (default: 30000)
 
 ## Configuring Claude Desktop
 
-### Direct Usage Configuration
-
-If you installed the package globally, configure Claude Desktop with:
+When configuring Claude Desktop, add the `--block-command` argument to the `args` array to enhance security.
 
 ```json
 {
   "mcpServers": {
-    "sqlite": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@executeautomation/database-server",
-        "/path/to/your/database.db"
-      ]
-    },
-    "sqlserver": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@executeautomation/database-server",
-        "--sqlserver",
-        "--server", "your-server-name",
-        "--database", "your-database-name",
-        "--user", "your-username",
-        "--password", "your-password"
-      ]
-    },
     "postgresql": {
       "command": "npx",
       "args": [
@@ -149,82 +120,13 @@ If you installed the package globally, configure Claude Desktop with:
         "--host", "your-host-name",
         "--database", "your-database-name",
         "--user", "your-username",
-        "--password", "your-password"
-      ]
-    },
-    "mysql": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@executeautomation/database-server",
-        "--mysql",
-        "--host", "your-host-name",
-        "--database", "your-database-name",
-        "--port", "3306",
-        "--user", "your-username",
-        "--password", "your-password"
+        "--password", "your-password",
+        "--block-command", "DELETE,TRUNCATE,DROP,UPDATE"
       ]
     }
   }
 }
 ```
-
-### Local Development Configuration
-
-For local development, configure Claude Desktop to use your locally built version:
-
-```json
-{
-  "mcpServers": {
-    "sqlite": {
-      "command": "node",
-      "args": [
-        "/absolute/path/to/mcp-database-server/dist/src/index.js", 
-        "/path/to/your/database.db"
-      ]
-    },
-    "sqlserver": {
-      "command": "node",
-      "args": [
-        "/absolute/path/to/mcp-database-server/dist/src/index.js",
-        "--sqlserver",
-        "--server", "your-server-name",
-        "--database", "your-database-name",
-        "--user", "your-username",
-        "--password", "your-password"
-      ]
-    },
-    "postgresql": {
-      "command": "node",
-      "args": [
-        "/absolute/path/to/mcp-database-server/dist/src/index.js",
-        "--postgresql",
-        "--host", "your-host-name",
-        "--database", "your-database-name",
-        "--user", "your-username",
-        "--password", "your-password"
-      ]
-    },
-    "mysql": {
-      "command": "node",
-      "args": [
-        "/absolute/path/to/mcp-database-server/dist/src/index.js",
-        "--mysql",
-        "--host", "your-host-name",
-        "--database", "your-database-name",
-        "--port", "3306",
-        "--user", "your-username",
-        "--password", "your-password"
-      ]
-    }
-  }
-}
-```
-
-The Claude Desktop configuration file is typically located at:
-- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-- Linux: `~/.config/Claude/claude_desktop_config.json`
 
 ## Available Database Tools
 
