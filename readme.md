@@ -132,12 +132,12 @@ node dist/src/index.js \
 
 ## Configuring Claude Desktop
 
-To configure Claude Desktop, you must use the absolute path to your locally built version of the server.
+To configure Claude Desktop, you must use the absolute path to your locally built version of the server. Below are examples for PostgreSQL and MySQL.
 
 ```json
 {
   "mcpServers": {
-    "postgresql": {
+    "postgresql_local": {
       "command": "node",
       "args": [
         "/absolute/path/to/mcp-database-server/dist/src/index.js",
@@ -146,6 +146,19 @@ To configure Claude Desktop, you must use the absolute path to your locally buil
         "--database", "your-database-name",
         "--user", "your-username",
         "--password", "your-password",
+        "--block-command", "DELETE,TRUNCATE,DROP,UPDATE"
+      ]
+    },
+    "mysql_local": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/mcp-database-server/dist/src/index.js",
+        "--mysql",
+        "--host", "127.0.0.1",
+        "--database", "your_database_name",
+        "--port", "3306",
+        "--user", "your_username",
+        "--password", "your_password",
         "--block-command", "DELETE,TRUNCATE,DROP,UPDATE"
       ]
     }
