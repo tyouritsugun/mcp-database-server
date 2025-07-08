@@ -6,6 +6,10 @@ This is a security-enhanced fork of the original MCP (Model Context Protocol) se
 
 **Special thanks to the original authors at ExecuteAutomation for creating the foundation of this project.**
 
+## Disclaimer
+
+**This project is intended for research and educational purposes only. It is not designed for production use and should be used with caution. The authors are not responsible for any data loss or security incidents that may result from its use.**
+
 ## Installation
 
 1. Clone the repository:
