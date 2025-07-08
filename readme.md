@@ -10,6 +10,8 @@ This is a security-enhanced fork of the original MCP (Model Context Protocol) se
 
 **This project is intended for research and educational purposes only. It is not designed for production use and should be used with caution. The authors are not responsible for any data loss or security incidents that may result from its use.**
 
+**Important: This security-enhanced version must be run from a local clone of the repository. Do not install or use any similarly named packages from the NPM registry, as they will not contain these security features.**
+
 ## Installation
 
 1. Clone the repository:
@@ -80,46 +82,65 @@ FLUSH PRIVILEGES;
 
 To use with an SQLite database and block dangerous commands:
 
-```
-node dist/src/index.js /path/to/your/database.db --block-command "DELETE,TRUNCATE,DROP,UPDATE"
+```bash
+node dist/src/index.js /path/to/your/database.db \
+  --block-command "DELETE,TRUNCATE,DROP,UPDATE"
 ```
 
 ### SQL Server Database
 
 To use with a SQL Server database and block dangerous commands:
 
-```
-node dist/src/index.js --sqlserver --server <server-name> --database <database-name> --user <username> --password <password> --block-command "DELETE,TRUNCATE,DROP,UPDATE"
+```bash
+node dist/src/index.js \
+  --sqlserver \
+  --server <server-name> \
+  --database <database-name> \
+  --user <username> \
+  --password <password> \
+  --block-command "DELETE,TRUNCATE,DROP,UPDATE"
 ```
 
 ### PostgreSQL Database
 
 To use with a PostgreSQL database and block dangerous commands:
 
-```
-node dist/src/index.js --postgresql --host <host-name> --database <database-name> --user <username> --password <password> --block-command "DELETE,TRUNCATE,DROP,UPDATE"
+```bash
+node dist/src/index.js \
+  --postgresql \
+  --host <host-name> \
+  --database <database-name> \
+  --user <username> \
+  --password <password> \
+  --block-command "DELETE,TRUNCATE,DROP,UPDATE"
 ```
 
 ### MySQL Database
 
 To use with a MySQL database and block dangerous commands:
 
-```
-node dist/src/index.js --mysql --host <host-name> --database <database-name> --port <port> --user <username> --password <password> --block-command "DELETE,TRUNCATE,DROP,UPDATE"
+```bash
+node dist/src/index.js \
+  --mysql \
+  --host <host-name> \
+  --database <database-name> \
+  --port <port> \
+  --user <username> \
+  --password <password> \
+  --block-command "DELETE,TRUNCATE,DROP,UPDATE"
 ```
 
 ## Configuring Claude Desktop
 
-When configuring Claude Desktop, add the `--block-command` argument to the `args` array to enhance security.
+To configure Claude Desktop, you must use the absolute path to your locally built version of the server.
 
 ```json
 {
   "mcpServers": {
     "postgresql": {
-      "command": "npx",
+      "command": "node",
       "args": [
-        "-y",
-        "@executeautomation/database-server",
+        "/absolute/path/to/mcp-database-server/dist/src/index.js",
         "--postgresql",
         "--host", "your-host-name",
         "--database", "your-database-name",
@@ -131,6 +152,11 @@ When configuring Claude Desktop, add the `--block-command` argument to the `args
   }
 }
 ```
+
+The Claude Desktop configuration file is typically located at:
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- Linux: `~/.config/Claude/claude_desktop_config.json`
 
 ## Available Database Tools
 
